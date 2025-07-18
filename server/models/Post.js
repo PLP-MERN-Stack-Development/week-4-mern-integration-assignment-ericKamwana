@@ -1,6 +1,22 @@
-// Post.js - Mongoose model for blog posts
+// models/Post.js - Mongoose model for blog posts
 
 const mongoose = require('mongoose');
+
+// Schema for embedded comments
+const CommentSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  content: {
+    type: String,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 const PostSchema = new mongoose.Schema(
   {
@@ -46,22 +62,7 @@ const PostSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    comments: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-        },
-        content: {
-          type: String,
-          required: true,
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
+    comments: [CommentSchema],
   },
   { timestamps: true }
 );
@@ -71,12 +72,12 @@ PostSchema.pre('save', function (next) {
   if (!this.isModified('title')) {
     return next();
   }
-  
+
   this.slug = this.title
     .toLowerCase()
     .replace(/[^\w ]+/g, '')
     .replace(/ +/g, '-');
-    
+
   next();
 });
 
@@ -97,4 +98,4 @@ PostSchema.methods.incrementViewCount = function () {
   return this.save();
 };
 
-module.exports = mongoose.model('Post', PostSchema); 
+module.exports = mongoose.model('Post', PostSchema);
